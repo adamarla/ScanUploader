@@ -6,13 +6,9 @@
     <property name="name" value="ScanUploader"/>
     <property name="src" value="${project.base.dir}/src"/>
     <property name="build" value="${project.base.dir}/build"/>
-    <property name="lib" value="${project.base.dir}/lib"/>
     <property value="" name="jars.ok"/>
     <path id="class.path">
         <pathelement path="${java.class.path}"/>
-        <fileset dir="${lib}">
-            <include name="*.jar"/>
-        </fileset>
         <fileset dir="/usr/share/java">
             <include name="tomcat-servlet-api-3.0.jar"/>
         </fileset>
