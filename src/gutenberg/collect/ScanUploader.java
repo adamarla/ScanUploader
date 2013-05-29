@@ -38,6 +38,17 @@ import javax.servlet.http.Part;
 @WebServlet(name = "ScanUploader", urlPatterns = {"/uploadScan"})
 @MultipartConfig(location = "/tmp")
 public class ScanUploader extends HttpServlet { 
+    
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        resp.addHeader("Access-Control-Allow-Origin", 
+            "http://localhost;3000, http://www.gradians.com");
+        resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        resp.addHeader("Access-Control-Allow-Headers", 
+            "cache-control,x-requested-with");        
+        resp.addHeader("Access-Control-Max-Age", "1728000");
+    }
         
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -94,7 +105,7 @@ public class ScanUploader extends HttpServlet {
                     response = "file-already-exists";
                     Files.delete(source);
                 } else {
-                    response = "ok";
+                    response = "true";
                     Files.move(source, target);
                 }
             } else {
@@ -107,8 +118,8 @@ public class ScanUploader extends HttpServlet {
     
     
     private void sendResponse(HttpServletResponse resp, String response) 
-        throws IOException {        
-        resp.setStatus(HttpServletResponse.SC_OK);
+        throws IOException {
+        resp.setStatus(HttpServletResponse.SC_OK);        
         resp.setContentType(CONTENT_TYPE_JSON);        
         resp.setStatus(HttpServletResponse.SC_OK);
         java.io.PrintWriter writer = resp.getWriter();
@@ -119,7 +130,7 @@ public class ScanUploader extends HttpServlet {
     private final String CONTENT_TYPE_JSON = "application/json";
     private final String CONTENT_TYPE_PDF = "application/pdf";
     private final String CONTENT_TYPE_IMG = "image/";
-    private final String RESPONSE_MSG = "{\"status\": \"%s\"}";
+    private final String RESPONSE_MSG = "{\"success\":\"%s\"}";
 
     private static final long serialVersionUID = 8282143940079610653L;
 
