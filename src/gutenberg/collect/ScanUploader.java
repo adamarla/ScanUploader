@@ -35,19 +35,26 @@ import javax.servlet.http.Part;
  *
  */
 
-@WebServlet(name = "ScanUploader", urlPatterns = {"/uploadScan"})
+@WebServlet(name = "ScanUploader", urlPatterns = {"/upload"})
 @MultipartConfig(location = "/tmp")
 public class ScanUploader extends HttpServlet { 
     
     @Override
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        resp.addHeader("Access-Control-Allow-Origin", 
-            "http://localhost;3000, http://www.gradians.com");
-        resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        resp.addHeader("Access-Control-Allow-Headers", 
-            "cache-control,x-requested-with");        
-        resp.addHeader("Access-Control-Max-Age", "1728000");
+        resp.setStatus(HttpServletResponse.SC_OK);
+        if (req.getHeader("Origin").equals("http://localhost:3000") ||
+            req.getHeader("Origin").contains("10.") ||
+            req.getHeader("Origin").equals("http://www.gradians.com")) {
+            resp.addHeader("Access-Control-Allow-Origin", 
+                req.getHeader("Origin"));
+            resp.addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            resp.addHeader("Access-Control-Allow-Headers",
+                req.getHeader("Access-Control-Request-Headers"));
+            resp.addHeader("Access-Control-Max-Age", "1728000");
+        } else {
+            resp.addHeader("Access-Control-Allow-Origin", "null");
+        }        
     }
         
     @Override
@@ -57,13 +64,13 @@ public class ScanUploader extends HttpServlet {
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.setContentType(CONTENT_TYPE_JSON);
         resp.setContentLength(response.length());
-        resp.getWriter().println(response);
+        resp.getWriter().print(response);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
         throws ServletException, IOException {        
-        
+
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-1");
@@ -76,7 +83,7 @@ public class ScanUploader extends HttpServlet {
             if (part.getContentType() != null) {
                 java.io.InputStream is = part.getInputStream();
                 int bytesRead = 0;
-                byte[] byteBuf = new byte[1024]; 
+                byte[] byteBuf = new byte[1024];
                 while ((bytesRead = is.read(byteBuf)) != -1) {
                     md.update(byteBuf, 0, bytesRead);
                 }
@@ -112,25 +119,23 @@ public class ScanUploader extends HttpServlet {
                 Files.delete(source);
                 response = "file-type-not-ok";                
             }
-        }
-        sendResponse(resp, response);
+        }        
+        
+        sendResponse(req, resp, response);
     }
     
     
-    private void sendResponse(HttpServletResponse resp, String response) 
+    private void sendResponse(HttpServletRequest req, HttpServletResponse resp, String response) 
         throws IOException {
-        resp.setStatus(HttpServletResponse.SC_OK);        
-        resp.setContentType(CONTENT_TYPE_JSON);        
-        resp.setStatus(HttpServletResponse.SC_OK);
-        java.io.PrintWriter writer = resp.getWriter();
-        writer.println(String.format(RESPONSE_MSG, response));        
+        resp.addHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
+        resp.setContentType(CONTENT_TYPE_JSON);
+        resp.getWriter().println(String.format("{\"success\": %s}", response));        
     }
     
     private final String EXTNSN = "ue";
     private final String CONTENT_TYPE_JSON = "application/json";
     private final String CONTENT_TYPE_PDF = "application/pdf";
     private final String CONTENT_TYPE_IMG = "image/";
-    private final String RESPONSE_MSG = "{\"success\":\"%s\"}";
 
     private static final long serialVersionUID = 8282143940079610653L;
 
